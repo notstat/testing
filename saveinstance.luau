@@ -76,9 +76,9 @@ local base64encode = global_container.base64encode
 
 -- ============================================
 -- LUADECOMPILE INTEGRATION (Custom Decompiler)
+-- Force use LuaDecompile instead of executor's decompiler
 -- ============================================
-local decompile = decompile -- Keep original if exists
-if not decompile and getscriptbytecode then
+if getscriptbytecode then
 	local Depile_Parser, Depile_Rebuilder
 
 	pcall(function()
@@ -87,7 +87,7 @@ if not decompile and getscriptbytecode then
 	end)
 
 	if Depile_Parser and Depile_Rebuilder then
-		decompile = function(scriptInstance)
+		getgenv().decompile = function(scriptInstance)
 			local ok, bytecode = pcall(getscriptbytecode, scriptInstance)
 			if not ok or not bytecode then
 				return "-- Failed to get bytecode"
@@ -105,9 +105,10 @@ if not decompile and getscriptbytecode then
 
 			return "-- Decompiled by LuaDecompile (Depile)\n" .. rebuilt
 		end
-		print("[SaveInstance] Using LuaDecompile as decompiler")
+		print("[SaveInstance] Using LuaDecompile as decompiler (forced via getgenv)")
 	end
 end
+local decompile = getgenv().decompile
 -- ============================================
 
 local service = setmetatable({}, {
